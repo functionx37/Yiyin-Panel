@@ -23,6 +23,13 @@ cp .env.example .env
 
 其中 `SITE_BASE_URL` 与 `WEB_TOKEN_SECRET` 需要和 `Yiyin-Bot` 的运行环境保持一致，否则 `/web` 生成的链接无法被本站正确校验。
 
+安装 npm
+
+```
+sudo apt update
+sudo apt install nodejs npm -y
+```
+
 ## 本地开发
 
 ### 1. 启动后端
