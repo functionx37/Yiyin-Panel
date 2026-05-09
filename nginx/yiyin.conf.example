@@ -1,0 +1,30 @@
+server {
+    listen 80;
+    server_name ${YIYIN_SERVER_NAME};
+
+    location = /yiyin {
+        return 301 /yiyin/;
+    }
+
+    location /yiyin/api/ {
+        proxy_pass http://${YIYIN_BACKEND_HOST}:${YIYIN_BACKEND_PORT}/yiyin/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /yiyin/ {
+        alias ${YIYIN_PANEL_ROOT}/frontend/dist/;
+        try_files $uri $uri/ @yiyin_spa;
+    }
+
+    location @yiyin_spa {
+        rewrite ^ /yiyin/index.html last;
+    }
+
+    location = /yiyin/index.html {
+        alias ${YIYIN_PANEL_ROOT}/frontend/dist/index.html;
+    }
+}
