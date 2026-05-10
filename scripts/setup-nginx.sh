@@ -9,9 +9,8 @@ readonly NGINX_CONF_PATH="/etc/nginx/nginx.conf"
 readonly NGINX_INCLUDE_LINE="include /etc/nginx/conf.d/*.conf;"
 readonly NGINX_SITE_DIR="/etc/nginx/conf.d"
 readonly NGINX_SITE_PATH="${NGINX_SITE_DIR}/yiyin.conf"
-DATA_SYNC_REMOTE_USER=""
+readonly FRONTEND_DIST_PATH="/var/www/yiyin/dist"
 DATA_SYNC_REMOTE_HOST=""
-DATA_SYNC_REMOTE_ROOT=""
 
 load_env_file() {
     local env_file="${REPO_ROOT}/.env"
@@ -64,48 +63,18 @@ parse_data_sync_remote() {
         exit 1
     fi
 
-    DATA_SYNC_REMOTE_USER="${BASH_REMATCH[1]%%@*}"
     DATA_SYNC_REMOTE_HOST="${BASH_REMATCH[1]##*@}"
-    DATA_SYNC_REMOTE_ROOT="${BASH_REMATCH[2]%/}"
-}
-
-expand_remote_root() {
-    local remote_root="$1"
-    local remote_home
-
-    if [[ -z "${remote_root}" ]]; then
-        printf '%s' ""
-        return
-    fi
-
-    if [[ "${remote_root}" == "~" || "${remote_root}" == "~/"* ]]; then
-        remote_home="$(getent passwd "${DATA_SYNC_REMOTE_USER}" | cut -d: -f6)"
-        if [[ -z "${remote_home}" ]]; then
-            echo "Could not resolve home directory for user: ${DATA_SYNC_REMOTE_USER}" >&2
-            exit 1
-        fi
-        printf '%s%s' "${remote_home}" "${remote_root#\~}"
-        return
-    fi
-
-    printf '%s' "${remote_root}"
 }
 
 apply_default_env() {
     local site_host="${SITE_BASE_URL:-}"
-    local resolved_panel_root=""
 
     parse_data_sync_remote
 
     site_host="${site_host#*://}"
     site_host="${site_host%%/*}"
 
-    if [[ -n "${DATA_SYNC_REMOTE_ROOT}" ]]; then
-        resolved_panel_root="$(expand_remote_root "${DATA_SYNC_REMOTE_ROOT}")"
-    fi
-
     export YIYIN_SERVER_NAME="${YIYIN_SERVER_NAME:-${DATA_SYNC_REMOTE_HOST:-${site_host}}}"
-    export YIYIN_PANEL_ROOT="${YIYIN_PANEL_ROOT:-${resolved_panel_root:-${REPO_ROOT}}}"
     export YIYIN_BACKEND_HOST="${BACKEND_HOST:-127.0.0.1}"
     export YIYIN_BACKEND_PORT="${BACKEND_PORT:-8000}"
 }
@@ -147,12 +116,10 @@ main() {
     require_root
     require_command nginx
     require_command envsubst
-    require_command getent
     require_command python3
     apply_default_env
 
     require_env YIYIN_SERVER_NAME
-    require_env YIYIN_PANEL_ROOT
     require_env YIYIN_BACKEND_HOST
     require_env YIYIN_BACKEND_PORT
 
@@ -164,7 +131,9 @@ main() {
     mkdir -p "${NGINX_SITE_DIR}"
     ensure_nginx_include
 
-    envsubst '${YIYIN_SERVER_NAME} ${YIYIN_PANEL_ROOT} ${YIYIN_BACKEND_HOST} ${YIYIN_BACKEND_PORT}' \
+    export YIYIN_FRONTEND_DIST="${FRONTEND_DIST_PATH}"
+
+    envsubst '${YIYIN_SERVER_NAME} ${YIYIN_FRONTEND_DIST} ${YIYIN_BACKEND_HOST} ${YIYIN_BACKEND_PORT}' \
         < "${TEMPLATE_PATH}" \
         > "${NGINX_SITE_PATH}"
 
@@ -180,6 +149,7 @@ main() {
 
     echo "Wrote nginx site config to ${NGINX_SITE_PATH}"
     echo "Server name: ${YIYIN_SERVER_NAME}"
+    echo "Frontend dist path: ${FRONTEND_DIST_PATH}"
 }
 
 main "$@"

@@ -53,9 +53,10 @@ npm run dev
 cd frontend
 npm install
 npm run build
+sudo cp -r dist/* /var/www/yiyin/dist/
 ```
 
-也可以在本地构建后再把产物推送到远程：
+可以直接使用脚本在本地构建并推送到远程：
 
 ```bash
 ./scripts/deploy-frontend-dist.sh
@@ -75,7 +76,7 @@ uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ```bash
 sudo apt update
-sudo apt install -y nginx gettext-base
+sudo apt install -y nginx gettext-base rsync
 ```
 
 然后执行

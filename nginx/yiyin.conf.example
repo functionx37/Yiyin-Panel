@@ -16,7 +16,7 @@ server {
     }
 
     location /yiyin/ {
-        alias ${YIYIN_PANEL_ROOT}/frontend/dist/;
+        alias ${YIYIN_FRONTEND_DIST}/;
         try_files $uri $uri/ @yiyin_spa;
     }
 
@@ -25,6 +25,6 @@ server {
     }
 
     location = /yiyin/index.html {
-        alias ${YIYIN_PANEL_ROOT}/frontend/dist/index.html;
+        alias ${YIYIN_FRONTEND_DIST}/index.html;
     }
 }
