@@ -55,6 +55,12 @@ npm install
 npm run build
 ```
 
+也可以在本地构建后再把产物推送到远程：
+
+```bash
+./scripts/deploy-frontend-dist.sh
+```
+
 ### 2. 启动后端
 
 ```bash
@@ -75,7 +81,7 @@ sudo apt install -y nginx gettext-base
 然后执行
 
 ```bash
-sudo -E ./scripts/setup-nginx.sh
+sudo ./scripts/setup-nginx.sh
 ```
 
-该脚本会自动配置好项目所需的 nginx 服务，如果后续域名、项目部署路径、后端监听地址或端口发生变化，只需重新设置环境变量并再次运行该脚本。
+该脚本可以自动生成反向代理配置。
