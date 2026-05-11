@@ -123,6 +123,7 @@ function closeMemberSidebar() {
 function selectMember(member: string) {
   activeMember.value = member
   closeMemberSidebar()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function openFoodLightbox(food: FoodItem) {

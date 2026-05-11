@@ -2,6 +2,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Right } from '@element-plus/icons-vue'
 import { api } from '../api'
 import { setAdminToken } from '../lib/auth'
 
@@ -44,7 +45,7 @@ async function submit() {
             @keyup.enter="submit"
           />
         </el-form-item>
-        <el-button type="primary" size="large" class="full-width" :loading="loading" @click="submit">
+        <el-button type="primary" size="large" class="full-width" :loading="loading" @click="submit" :icon="Right">
           登录
         </el-button>
       </el-form>
