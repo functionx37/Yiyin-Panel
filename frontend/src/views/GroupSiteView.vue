@@ -324,7 +324,7 @@ watch(activeSection, () => {
                 <template v-else>
                   <div class="quote-wall">
                     <article
-                      v-for="entry in activeQuoteGroup.entries"
+                      v-for="(entry, index) in activeQuoteGroup.entries"
                       :key="entry.id"
                       class="quote-wall__item image-card quote-image-card"
                     >
@@ -339,7 +339,8 @@ watch(activeSection, () => {
                           :width="entry.image_width ?? undefined"
                           :height="entry.image_height ?? undefined"
                           :style="getImageAspectStyle(entry)"
-                          loading="lazy"
+                          :loading="index < 6 ? undefined : 'lazy'"
+                          :fetchpriority="index < 6 ? 'high' : 'auto'"
                         />
                       </button>
                     </article>
@@ -353,7 +354,7 @@ watch(activeSection, () => {
         <div v-else>
           <el-empty v-if="!foods.length" description="该群暂无公开食物数据" />
           <div v-else class="food-wall">
-            <article v-for="food in foods" :key="food.id" class="food-wall__item">
+            <article v-for="(food, index) in foods" :key="food.id" class="food-wall__item">
               <button type="button" class="food-card" @click="openFoodLightbox(food)">
                 <img
                   :src="food.image_url"
@@ -361,7 +362,8 @@ watch(activeSection, () => {
                   :width="food.image_width ?? undefined"
                   :height="food.image_height ?? undefined"
                   :style="getImageAspectStyle(food)"
-                  loading="lazy"
+                  :loading="index < 6 ? undefined : 'lazy'"
+                  :fetchpriority="index < 6 ? 'high' : 'auto'"
                 />
                 <div class="image-card__footer">
                   <strong>{{ food.name }}</strong>
