@@ -31,6 +31,7 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -819,18 +820,5 @@ code {
     width: 100%;
     justify-content: center;
     margin: 0;
-  }
-
-  .lightbox-card {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    margin-top: auto;
-    width: 100%;
-    max-height: 85vh;
-  }
-
-  .lightbox-overlay {
-    align-items: flex-end;
-    padding: 0;
   }
 }
