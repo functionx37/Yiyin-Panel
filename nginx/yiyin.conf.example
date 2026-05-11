@@ -20,11 +20,19 @@ server {
         try_files $uri $uri/ @yiyin_spa;
     }
 
+    location /yiyin/assets/ {
+        alias ${YIYIN_FRONTEND_DIST}/assets/;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
     location @yiyin_spa {
         rewrite ^ /yiyin/index.html last;
     }
 
     location = /yiyin/index.html {
         alias ${YIYIN_FRONTEND_DIST}/index.html;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
     }
 }
