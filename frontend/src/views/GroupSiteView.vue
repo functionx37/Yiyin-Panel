@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChatLineSquare, Close, Download, PictureFilled, Edit, CollectionTag } from '@element-plus/icons-vue'
+import { ChatLineSquare, Close, Download, PictureFilled, Edit } from '@element-plus/icons-vue'
 import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue'
 import type { Component } from 'vue'
 import { useRoute } from 'vue-router'
