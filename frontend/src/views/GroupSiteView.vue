@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ChatLineSquare, Close, Download, PictureFilled } from '@element-plus/icons-vue'
+import { ChatLineSquare, Close, Download, PictureFilled, Edit, CollectionTag } from '@element-plus/icons-vue'
 import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue'
 import type { Component } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElDialog, ElForm, ElFormItem, ElInput, ElSelect, ElButton } from 'element-plus'
 import type { FoodItem, GroupSummary, QuoteMemberGroup } from '../api'
 import { api } from '../api'
 
@@ -25,7 +25,11 @@ const foods = ref<FoodItem[]>([])
 const activeSection = ref<ActiveSection>('foods')
 const activeMember = ref('')
 const memberSidebarOpen = ref(true)
-const selectedPreview = ref<{ title: string; imageUrl: string; downloadName: string } | null>(null)
+const selectedPreview = ref<{ type: 'food' | 'quote'; id: string; title: string; imageUrl: string; downloadName: string; tags?: string[] } | null>(null)
+
+const editFoodVisible = ref(false)
+const editFoodLoading = ref(false)
+const editFoodForm = ref({ name: '', tags: [] as string[] })
 
 const tabs: Array<{ key: ActiveSection; label: string; icon: Component }> = [
   { key: 'foods', label: '食物图鉴', icon: PictureFilled },
@@ -128,17 +132,66 @@ function selectMember(member: string) {
 
 function openFoodLightbox(food: FoodItem) {
   selectedPreview.value = {
+    type: 'food',
+    id: food.id,
     title: food.name,
     imageUrl: food.image_url,
     downloadName: food.name,
+    tags: food.tags,
   }
 }
 
 function openQuoteLightbox(entry: QuoteMemberGroup['entries'][number], member: string) {
   selectedPreview.value = {
+    type: 'quote',
+    id: entry.id,
     title: member,
     imageUrl: entry.image_url,
     downloadName: `${member}-${entry.id}`,
+  }
+}
+
+function openEditFood() {
+  if (selectedPreview.value?.type === 'food') {
+    editFoodForm.value = {
+      name: selectedPreview.value.title,
+      tags: [...(selectedPreview.value.tags || [])],
+    }
+    editFoodVisible.value = true
+  }
+}
+
+async function submitEditFood() {
+  if (!selectedPreview.value || selectedPreview.value.type !== 'food') return
+  
+  editFoodLoading.value = true
+  try {
+    const updatedFood = await api.public.updateFood(groupId.value, token.value, selectedPreview.value.id, {
+      name: editFoodForm.value.name,
+      tags: editFoodForm.value.tags,
+    })
+    
+    // update local state
+    const index = rawFoods.value.findIndex(f => f.id === updatedFood.id)
+    if (index !== -1) {
+      rawFoods.value[index] = updatedFood
+    }
+    
+    const displayIndex = foods.value.findIndex(f => f.id === updatedFood.id)
+    if (displayIndex !== -1) {
+      foods.value[displayIndex] = updatedFood
+    }
+    
+    selectedPreview.value.title = updatedFood.name
+    selectedPreview.value.downloadName = updatedFood.name
+    selectedPreview.value.tags = updatedFood.tags
+    
+    ElMessage.success('更新成功')
+    editFoodVisible.value = false
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '更新失败')
+  } finally {
+    editFoodLoading.value = false
   }
 }
 
@@ -382,6 +435,9 @@ watch(activeSection, () => {
           <div class="lightbox-toolbar">
             <strong>{{ selectedPreview.title }}</strong>
             <div class="lightbox-actions">
+              <button v-if="selectedPreview.type === 'food'" type="button" class="lightbox-icon-button" @click="openEditFood" title="编辑信息">
+                <Edit />
+              </button>
               <button type="button" class="lightbox-icon-button" @click="downloadPreviewImage">
                 <Download />
               </button>
@@ -395,6 +451,24 @@ watch(activeSection, () => {
           </div>
         </div>
       </div>
+
+      <el-dialog v-model="editFoodVisible" title="编辑食物信息" width="400px" append-to-body>
+        <el-form label-width="80px" @submit.prevent>
+          <el-form-item label="名称">
+            <el-input v-model="editFoodForm.name" />
+          </el-form-item>
+          <el-form-item label="标签">
+            <el-select v-model="editFoodForm.tags" multiple filterable allow-create default-first-option placeholder="请选择或输入标签">
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="editFoodVisible = false">取消</el-button>
+            <el-button type="primary" @click="submitEditFood" :loading="editFoodLoading">保存</el-button>
+          </span>
+        </template>
+      </el-dialog>
     </template>
   </div>
 </template>

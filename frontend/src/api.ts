@@ -87,6 +87,11 @@ export interface FoodsResponse {
   items: FoodItem[]
 }
 
+export interface FoodUpdateRequest {
+  name?: string
+  tags?: string[]
+}
+
 async function request<T>(path: string, init: RequestInit = {}, useAdminToken = false): Promise<T> {
   const headers = new Headers(init.headers)
   headers.set('Accept', 'application/json')
@@ -152,6 +157,12 @@ export const api = {
     },
     getFoods(groupId: string, token: string) {
       return request<FoodsResponse>(`/public/groups/${encodeURIComponent(groupId)}/foods?token=${encodeURIComponent(token)}`)
+    },
+    updateFood(groupId: string, token: string, foodId: string, payload: FoodUpdateRequest) {
+      return request<FoodItem>(`/public/groups/${encodeURIComponent(groupId)}/foods/${encodeURIComponent(foodId)}?token=${encodeURIComponent(token)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      })
     },
   },
 }

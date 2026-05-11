@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -267,6 +268,49 @@ def resolve_food_image(group_id: str, food_id: str) -> Path:
     if not image_path.exists():
         raise FileNotFoundError(f"食物图片不存在: {food_id}")
     return image_path
+
+
+def update_food(group_id: str, food_id: str, name: str | None, tags: list[str] | None) -> dict[str, Any]:
+    bot_root = _require_bot_root()
+    group_dir = bot_root / "data" / "food" / group_id
+    index_path = group_dir / "index.json"
+    index_raw = _read_json(index_path, {})
+    if not isinstance(index_raw, dict) or food_id not in index_raw:
+        raise DataAccessError(f"未找到食物 ID: {food_id}")
+    
+    entry = index_raw[food_id]
+    if not isinstance(entry, dict):
+        raise DataAccessError(f"食物数据异常: {food_id}")
+    
+    old_name = entry.get("name")
+    old_tags = entry.get("tags")
+    
+    if name is not None:
+        entry["name"] = name
+    if tags is not None:
+        entry["tags"] = tags
+        
+    _write_json(index_path, index_raw)
+    
+    log_path = bot_root / "data" / "food" / "edit_log.jsonl"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "group_id": group_id,
+        "food_id": food_id,
+        "old_name": old_name,
+        "new_name": entry.get("name"),
+        "old_tags": old_tags,
+        "new_tags": entry.get("tags")
+    }
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
+        
+    return {
+        "id": food_id,
+        "name": entry.get("name") if isinstance(entry.get("name"), str) and entry.get("name") else food_id,
+        "tags": [tag for tag in entry.get("tags", []) if isinstance(tag, str) and tag],
+    }
 
 
 def group_summary(group_id: str) -> dict[str, Any]:

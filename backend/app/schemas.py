@@ -91,6 +91,11 @@ class FoodItem(BaseModel):
     image_height: int | None = None
 
 
+class FoodUpdateRequest(BaseModel):
+    name: str | None = None
+    tags: list[str] | None = None
+
+
 class FoodsResponse(BaseModel):
     group_id: str
     group_name: str

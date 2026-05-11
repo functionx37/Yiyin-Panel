@@ -16,10 +16,13 @@ from .data_access import (
     resolve_food_image,
     resolve_quote_image,
     update_toggle,
+    update_food,
 )
 from .schemas import (
     DebugGroupListResponse,
     FoodsResponse,
+    FoodItem,
+    FoodUpdateRequest,
     GroupSummaryResponse,
     LoginRequest,
     LoginResponse,
@@ -195,6 +198,13 @@ async def public_foods(group_id: str, token: str = Depends(require_group_token))
             'items': items,
         }
     )
+
+
+@app.patch(f'{settings.api_base_path}/public/groups/{{group_id}}/foods/{{food_id}}', response_model=FoodItem)
+async def patch_food(group_id: str, food_id: str, payload: FoodUpdateRequest, token: str = Depends(require_group_token)) -> FoodItem:
+    updated = update_food(group_id, food_id, payload.name, payload.tags)
+    updated['image_url'] = f"{settings.api_base_path}/public/groups/{group_id}/foods/{food_id}/image?{_query_with_token(token)}"
+    return FoodItem.model_validate(updated)
 
 
 @app.get(f'{settings.api_base_path}/public/groups/{{group_id}}/quotes/{{quote_id}}/image')
