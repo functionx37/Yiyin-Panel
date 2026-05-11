@@ -8,6 +8,10 @@ import type { FoodItem, GroupSummary, QuoteMemberGroup } from '../api'
 import { api } from '../api'
 
 type ActiveSection = 'foods' | 'quotes'
+type ImageWithDimensions = {
+  image_width?: number | null
+  image_height?: number | null
+}
 
 const route = useRoute()
 const loading = ref(true)
@@ -180,6 +184,17 @@ function getSpicyTags(tags: string[]) {
   return tags.filter((tag) => tag.includes('辣'))
 }
 
+function getImageAspectStyle(item: ImageWithDimensions) {
+  const width = item.image_width
+  const height = item.image_height
+  if (typeof width !== 'number' || typeof height !== 'number' || width <= 0 || height <= 0) {
+    return undefined
+  }
+  return {
+    aspectRatio: `${width} / ${height}`,
+  }
+}
+
 function attachKeyboardListener() {
   window.addEventListener('keydown', handleKeydown)
 }
@@ -317,7 +332,14 @@ watch(activeSection, () => {
                         class="quote-image-button"
                         @click="openQuoteLightbox(entry, activeQuoteGroup.member)"
                       >
-                        <img :src="entry.image_url" :alt="activeQuoteGroup.member" loading="lazy" />
+                        <img
+                          :src="entry.image_url"
+                          :alt="activeQuoteGroup.member"
+                          :width="entry.image_width ?? undefined"
+                          :height="entry.image_height ?? undefined"
+                          :style="getImageAspectStyle(entry)"
+                          loading="lazy"
+                        />
                       </button>
                     </article>
                   </div>
@@ -332,7 +354,14 @@ watch(activeSection, () => {
           <div v-else class="food-wall">
             <article v-for="food in foods" :key="food.id" class="food-wall__item">
               <button type="button" class="food-card" @click="openFoodLightbox(food)">
-                <img :src="food.image_url" :alt="food.name" loading="lazy" />
+                <img
+                  :src="food.image_url"
+                  :alt="food.name"
+                  :width="food.image_width ?? undefined"
+                  :height="food.image_height ?? undefined"
+                  :style="getImageAspectStyle(food)"
+                  loading="lazy"
+                />
                 <div class="image-card__footer">
                   <strong>{{ food.name }}</strong>
                   <div v-if="getSpicyTags(food.tags).length" class="tag-row">

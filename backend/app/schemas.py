@@ -64,6 +64,8 @@ class GroupSummaryResponse(BaseModel):
 class QuoteEntry(BaseModel):
     id: str
     image_url: str
+    image_width: int | None = None
+    image_height: int | None = None
     content: str | None = None
     speaker_name: str | None = None
     avatar_url: str | None = None
@@ -85,6 +87,8 @@ class FoodItem(BaseModel):
     name: str
     tags: list[str]
     image_url: str
+    image_width: int | None = None
+    image_height: int | None = None
 
 
 class FoodsResponse(BaseModel):

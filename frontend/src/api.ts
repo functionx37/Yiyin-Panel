@@ -54,6 +54,8 @@ export interface GroupSummary {
 export interface QuoteEntry {
   id: string
   image_url: string
+  image_width?: number | null
+  image_height?: number | null
   content?: string
   speaker_name?: string
   avatar_url?: string
@@ -75,6 +77,8 @@ export interface FoodItem {
   name: string
   tags: string[]
   image_url: string
+  image_width?: number | null
+  image_height?: number | null
 }
 
 export interface FoodsResponse {

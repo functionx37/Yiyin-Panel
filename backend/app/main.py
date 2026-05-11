@@ -151,6 +151,8 @@ async def public_quotes(group_id: str, token: str = Depends(require_group_token)
                 'image_url': (
                     f"{settings.api_base_path}/public/groups/{group_id}/quotes/{entry['id']}/image?{_query_with_token(token)}"
                 ),
+                'image_width': entry.get('image_width'),
+                'image_height': entry.get('image_height'),
                 'content': entry.get('content'),
                 'speaker_name': entry.get('speaker_name'),
                 'avatar_url': entry.get('avatar_url'),
@@ -182,6 +184,8 @@ async def public_foods(group_id: str, token: str = Depends(require_group_token))
                 'name': item['name'],
                 'tags': item['tags'],
                 'image_url': f"{settings.api_base_path}/public/groups/{group_id}/foods/{item['id']}/image?{_query_with_token(token)}",
+                'image_width': item.get('image_width'),
+                'image_height': item.get('image_height'),
             }
         )
     return FoodsResponse.model_validate(

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
+
+from PIL import Image, UnidentifiedImageError
 
 from .config import settings
 
@@ -138,6 +141,19 @@ def _first_string(entry: dict[str, Any], keys: list[str]) -> str | None:
     return None
 
 
+@lru_cache(maxsize=4096)
+def _read_image_dimensions(image_path: Path) -> tuple[int, int] | None:
+    try:
+        with Image.open(image_path) as image:
+            width, height = image.size
+    except (OSError, UnidentifiedImageError):
+        return None
+
+    if width <= 0 or height <= 0:
+        return None
+    return width, height
+
+
 def list_quotes(group_id: str) -> list[dict[str, Any]]:
     bot_root = _require_bot_root()
     group_dir = bot_root / "data" / "quotes" / group_id
@@ -167,9 +183,12 @@ def list_quotes(group_id: str) -> list[dict[str, Any]]:
             if member not in grouped:
                 ordered_members.append(member)
                 grouped[member] = []
+            image_dimensions = _read_image_dimensions(image_path)
             grouped[member].append(
                 {
                     "id": quote_id,
+                    "image_width": image_dimensions[0] if image_dimensions else None,
+                    "image_height": image_dimensions[1] if image_dimensions else None,
                     "content": _first_string(entry, ["content", "text", "message", "quote"]),
                     "speaker_name": _first_string(
                         entry,
@@ -221,6 +240,7 @@ def list_foods(group_id: str) -> list[dict[str, Any]]:
         if not image_path.exists():
             continue
         tags = entry.get("tags") if isinstance(entry.get("tags"), list) else []
+        image_dimensions = _read_image_dimensions(image_path)
         foods.append(
             {
                 "id": food_id,
@@ -228,6 +248,8 @@ def list_foods(group_id: str) -> list[dict[str, Any]]:
                 if isinstance(entry.get("name"), str) and entry.get("name")
                 else food_id,
                 "tags": [tag for tag in tags if isinstance(tag, str) and tag],
+                "image_width": image_dimensions[0] if image_dimensions else None,
+                "image_height": image_dimensions[1] if image_dimensions else None,
             }
         )
     return foods
